@@ -10,7 +10,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -21,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	apiconstants "github.com/stolostron/cluster-lifecycle-api/constants"
+	imageregistryv1alpha1 "github.com/stolostron/cluster-lifecycle-api/imageregistry/v1alpha1"
 	klusterletconfigv1alpha1 "github.com/stolostron/cluster-lifecycle-api/klusterletconfig/v1alpha1"
 
 	"github.com/stolostron/managedcluster-import-controller/pkg/constants"
@@ -55,8 +55,8 @@ func Add(ctx context.Context,
 					// handle the labels changes for image registry
 					// handle the annotations changes for node placement and klusterletconfig
 					// handle the claim changes for priority class
-					return !equality.Semantic.DeepEqual(e.ObjectOld.GetLabels(), e.ObjectNew.GetLabels()) ||
-						!equality.Semantic.DeepEqual(e.ObjectOld.GetAnnotations(), e.ObjectNew.GetAnnotations()) ||
+					return isLabelChanged(e.ObjectOld.GetLabels(), e.ObjectNew.GetLabels()) ||
+						isAnnotationChanged(e.ObjectOld.GetAnnotations(), e.ObjectNew.GetAnnotations()) ||
 						helpers.IsKubeVersionChanged(e.ObjectOld, e.ObjectNew)
 				},
 			}),
@@ -185,4 +185,34 @@ func Add(ctx context.Context,
 			recorder:               helpers.NewEventRecorder(clientHolder.KubeClient, ControllerName),
 		})
 	return err
+}
+
+func isLabelChanged(old, new map[string]string) bool {
+	labelKeys := []string{
+		apiconstants.SelfManagedClusterLabelKey,
+		imageregistryv1alpha1.ClusterImageRegistryLabel,
+	}
+	for _, key := range labelKeys {
+		if old[key] != new[key] {
+			return true
+		}
+	}
+	return false
+}
+
+func isAnnotationChanged(old, new map[string]string) bool {
+	annotationKeys := []string{
+		constants.KlusterletDeployModeAnnotation,
+		constants.HostingClusterNameAnnotation,
+		constants.KlusterletNamespaceAnnotation,
+		imageregistryv1alpha1.ClusterImageRegistriesAnnotation,
+		apiconstants.AnnotationKlusterletConfig,
+		clusterv1.ClusterImageRegistriesAnnotationKey,
+	}
+	for _, key := range annotationKeys {
+		if old[key] != new[key] {
+			return true
+		}
+	}
+	return false
 }
