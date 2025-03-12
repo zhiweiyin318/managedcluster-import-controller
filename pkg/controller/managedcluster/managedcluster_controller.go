@@ -158,9 +158,9 @@ func (r *ReconcileManagedCluster) Reconcile(ctx context.Context, request reconci
 	}
 	if len(addons.Items) != 0 {
 		// for safety force delete remained addon again here.
-		if err = r.deleteManagedClusterAddon(ctx, managedCluster); err != nil {
-			return reconcile.Result{}, err
-		}
+		// if err = r.deleteManagedClusterAddon(ctx, managedCluster); err != nil {
+		// 	return reconcile.Result{}, err
+		// }
 
 		return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
 	}

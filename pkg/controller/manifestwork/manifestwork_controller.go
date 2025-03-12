@@ -109,7 +109,8 @@ func (r *ReconcileManifestWork) Reconcile(ctx context.Context, request reconcile
 
 		// the managed cluster is deleting, delete its addons and manifestworks
 		// Note: we only informer the klusterlet works, so we need to requeue here
-		return reconcile.Result{RequeueAfter: 5 * time.Second}, r.deleteAddonsAndWorks(ctx, managedCluster, manifestWorks.Items)
+		//	return reconcile.Result{RequeueAfter: 5 * time.Second}, r.deleteAddonsAndWorks(ctx, managedCluster, manifestWorks.Items)
+		return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
 	}
 
 	workSelector := labels.SelectorFromSet(map[string]string{constants.KlusterletWorksLabel: "true"})
@@ -289,6 +290,7 @@ func createManifestWorks(
 				Labels: map[string]string{
 					constants.KlusterletWorksLabel: "true",
 				},
+				Annotations: map[string]string{clusterv1.CleanupPriorityAnnotationKey: "100"},
 			},
 			Spec: workv1.ManifestWorkSpec{
 				Workload: workv1.ManifestsTemplate{
@@ -322,6 +324,7 @@ func createManifestWorks(
 			Labels: map[string]string{
 				constants.KlusterletWorksLabel: "true",
 			},
+			Annotations: map[string]string{clusterv1.CleanupPriorityAnnotationKey: "100"},
 		},
 		Spec: workv1.ManifestWorkSpec{
 			Workload: workv1.ManifestsTemplate{
