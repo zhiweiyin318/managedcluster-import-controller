@@ -954,7 +954,7 @@ func TestKlusterletConfigGenerate(t *testing.T) {
 				RuntimeClient:       fake.NewClientBuilder().WithScheme(testscheme).WithObjects(testcase.clientObjs...).Build(),
 				ImageRegistryClient: imageregistry.NewClient(kubeClient),
 			}
-			manifestsBytes, crdBytes, err := testcase.config.Generate(context.Background(), clientHolder)
+			manifestsBytes, crdBytes, _, err := testcase.config.Generate(context.Background(), clientHolder)
 			if err != nil {
 				t.Fatalf("%s Failed to generate klusterlet manifests: %v", testcase.name, err)
 			}
