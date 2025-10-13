@@ -43,6 +43,7 @@ spec:
           - "klusterlet"
           {{- if .Values.enableSyncLabels }}
           - --enable-sync-labels
+          - -v=5
           {{- end }}
         env:
           - name: POD_NAME
